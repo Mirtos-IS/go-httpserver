@@ -1,0 +1,15 @@
+  <head>
+    <title>Wrong password</title>
+  </head>
+
+  <body>
+    <h1>This password below to the user: {{ .Username }}</h1>
+      <p>
+        [<a href="/edit/{{.Uid}}">Edit</a>]
+      </p>
+      <div>
+        {{printf "%s" .Password}}
+      </div>
+  </body>
+
+</html>

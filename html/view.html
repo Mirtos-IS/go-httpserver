@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ .Username }}</title>
+  </head>
+
+  <body>
+    <h1>{{ .Username }}</h1>
+      <p>
+        [<a href="/edit/{{.Uid}}">Edit</a>]
+      </p>
+      <div>
+        {{printf "%s" .Password}}
+      </div>
+  </body>
+
+</html>
