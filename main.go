@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -17,7 +18,8 @@ type Page struct {
     Body []byte
 }
 
-var templates = template.Must(template.ParseFiles("html/edit.html", "html/view.html", "html/login.html", "html/wrong.html"))
+var count int
+var templates = template.Must(template.ParseFiles("html/edit.html", "html/view.html", "html/login.html", "html/wrong.html", "html/wrongWithUser.html", "html/test.html"))
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 
 func (p *Page) save() error {
@@ -57,6 +59,17 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
     renderTemplate(w, "login", nil)
 }
 
+func testHandler(w http.ResponseWriter, r *http.Request) {
+    renderTemplate(w, "test", nil)
+}
+
+func testRHandler(w http.ResponseWriter, r *http.Request) {
+    jData, _ := json.Marshal(count)
+    count++
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(jData)
+}
+
 func loginCheckHandler(w http.ResponseWriter, r *http.Request) {
     username := r.FormValue("username")
     password := r.FormValue("password")
@@ -68,6 +81,9 @@ func loginCheckHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
     user, _ = FindUserByPassword(password)
+    if user.Uid > 0 {
+        renderTemplate(w, "wrongWithUser", user)
+    }
     renderTemplate(w, "wrong", user)
 }
 
@@ -125,6 +141,10 @@ func main() {
     http.HandleFunc("/view/", viewHandler)
     http.HandleFunc("/edit/", editHandler)
     http.HandleFunc("/login", loginHandler)
+    http.HandleFunc("/test", testHandler)
+    http.HandleFunc("/testR", testRHandler)
     http.HandleFunc("/login/check", loginCheckHandler)
+    //load CSS
+    http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
     log.Fatal(http.ListenAndServe(":8080", nil))
 }

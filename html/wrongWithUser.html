@@ -3,10 +3,13 @@
   </head>
 
   <body>
-    <h1>This password below is not yours, dummy. try the correct one, please</h1>
+    <h1>This password below to the user: {{ .Username }}</h1>
       <p>
         [<a href="/edit/{{.Uid}}">Edit</a>]
       </p>
+      <div>
+        {{printf "%s" .Password}}
+      </div>
   </body>
 
 </html>

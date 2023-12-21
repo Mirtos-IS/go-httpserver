@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"time"
 )
@@ -29,7 +30,7 @@ func (user *User) save() (int64, error) {
         CheckErr(err)
     }
 
-    res, err := stmt.Exec(user.Username, user.Business_name, user.Password)
+    res, err := stmt.Exec(user.Username, user.Business_name, hashPassword(user.Password))
     CheckErr(err)
 
     id, err := res.LastInsertId()
@@ -64,7 +65,7 @@ func LoginUser(username string, password string) (*User, error) {
 
     defer db.Close()
 
-    rows, err := db.Query("SELECT * FROM user WHERE username=(?) AND password=(?) LIMIT 1", username, password)
+    rows, err := db.Query("SELECT * FROM user WHERE username=(?) AND password=(?) LIMIT 1", username, hashPassword(password))
     CheckErr(err)
     defer rows.Close()
 
@@ -84,7 +85,7 @@ func FindUserByPassword(password string) (*User, error) {
 
     defer db.Close()
 
-    rows, err := db.Query("SELECT * FROM user WHERE password=(?) LIMIT 1", password)
+    rows, err := db.Query("SELECT * FROM user WHERE password=(?) LIMIT 1", hashPassword(password))
     CheckErr(err)
     defer rows.Close()
 
@@ -97,4 +98,12 @@ func FindUserByPassword(password string) (*User, error) {
     }
     return &user, nil
 }
+
+func hashPassword(password string) (string) {
+    hash := sha256.New()
+    hash.Write([]byte(password))
+
+    return string(hash.Sum(nil))
+}
+
 //TODO: create a proper login system and proper password storage, as plain text is cringe

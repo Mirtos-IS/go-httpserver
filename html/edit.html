@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>{{ .Username }}</title>
+    <title>This is a test</title>
+    <script href="htmx/htmx.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
   </head>
-
   <body>
     <form action="/save/{{.Uid}}" method="POST">
       <input type="text" name="username" value="{{.Username}}">
@@ -13,5 +14,5 @@
       </div>
     </form>
   </body>
-
+</div>
 </html>
