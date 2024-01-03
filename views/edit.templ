@@ -1,0 +1,20 @@
+package views
+
+import "httpserver/models"
+import "strconv"
+
+templ Edit(user *models.User) {
+  @Header("edit your account") {
+    <form action={templ.URL("/save/" + strconv.FormatInt(user.Uid, 10))} method="POST">
+      <input type="text" name="username" value={ user.Username }></input>
+      <input type="password" name="password" value={ user.Password }></input>
+      <div>
+        <input type="submit" value="Save"></input>
+      </div>
+    </form>
+  }
+}
+
+templ EditButton(id string) {
+  [<a href={templ.URL("/edit/" + id)}>Edit</a>]
+}

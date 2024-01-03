@@ -3,29 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
+	"httpserver/models"
+	"httpserver/views"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Page struct {
-    Title string
-    Body []byte
-}
 
 var count int
-var templates = template.Must(template.ParseFiles("html/edit.html", "html/view.html", "html/login.html", "html/wrong.html", "html/wrongWithUser.html", "html/test.html"))
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
-
-func (p *Page) save() error {
-    filename := p.Title + ".txt"
-    return os.WriteFile(filename, p.Body, 0600)
-}
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
     rawId := r.URL.Path[len("/view/"):]
@@ -33,12 +23,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
     if err != nil {
         fmt.Println(err)
     }
-    user, err := LoadUser(id)
+    user, err := models.LoadUser(id)
     if err != nil {
         http.Redirect(w, r, "/edit/" + rawId, http.StatusFound)
         return
     }
-    renderTemplate(w, "view", user)
+    views.View(user).Render(r.Context(), w)
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request) {
@@ -48,19 +38,15 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
         fmt.Println(err)
     }
 
-    user, err := LoadUser(id)
+    user, err := models.LoadUser(id)
     if err != nil {
-        user = &User{}
+        user = &models.User{}
     }
-    renderTemplate(w, "edit", user)
+    views.Edit(user).Render(r.Context(), w)
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-    renderTemplate(w, "login", nil)
-}
-
-func testHandler(w http.ResponseWriter, r *http.Request) {
-    renderTemplate(w, "test", nil)
+    views.Login().Render(r.Context(), w)
 }
 
 func testRHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,21 +56,50 @@ func testRHandler(w http.ResponseWriter, r *http.Request) {
     w.Write(jData)
 }
 
+func UsersHandler(w http.ResponseWriter, r *http.Request) {
+    rawId := r.URL.Path[len("/users/"):]
+
+    var id int
+    if rawId == "" {
+        id = 0
+    } else {
+        id, _ = strconv.Atoi(rawId)
+    }
+
+    users, _ := models.GetUsers(id)
+
+    views.Users(users).Render(r.Context(), w)
+}
+
+func getUsersHandler(w http.ResponseWriter, r *http.Request) {
+    rawId := r.URL.Path[len("/users/get/"):]
+
+    var id int
+    if rawId == "" {
+        id = 0
+    } else {
+        id, _ = strconv.Atoi(rawId)
+    }
+
+    users, _ := models.GetUsers(id)
+    jData, _ := json.Marshal(users)
+
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(jData)
+}
+
 func loginCheckHandler(w http.ResponseWriter, r *http.Request) {
     username := r.FormValue("username")
     password := r.FormValue("password")
 
 
-    user, _ := LoginUser(username, password)
+    user, _ := models.LoginUser(username, password)
     if user.Uid > 0 {
-        renderTemplate(w, "view", user)
+        views.View(user).Render(r.Context(), w)
         return
     }
-    user, _ = FindUserByPassword(password)
-    if user.Uid > 0 {
-        renderTemplate(w, "wrongWithUser", user)
-    }
-    renderTemplate(w, "wrong", user)
+    user, _ = models.FindUserByPassword(password)
+    views.Wrong(user).Render(r.Context(), w)
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request) {
@@ -97,13 +112,13 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
     username := r.FormValue("username")
     password := r.FormValue("password")
     if id > 0 {
-        user, _ := LoadUser(id)
+        user, _ := models.LoadUser(id)
         user.Username = username
         user.Password = password
-        user.save()
+        user.Save()
     } else {
-        user := &User{Username: username, Password: password}
-        id, err = user.save()
+        user := &models.User{Username: username, Password: password}
+        id, err = user.Save()
         if err != nil {
             http.Error(w, err.Error(), http.StatusInternalServerError)
             return
@@ -113,38 +128,17 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/view/" + strconv.FormatInt(id, 10), http.StatusFound)
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, user *User) {
-    err := templates.ExecuteTemplate(w, tmpl+".html", user)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-    }
-
-}
-
-func loadPage(title string) (*Page, error) {
-    filename := title + ".txt"
-    body, err := os.ReadFile(filename)
-    if err != nil {
-        return nil, err
-    }
-    return &Page{Title: title, Body: body}, nil
-}
-
-func CheckErr(err error) {
-    if err != nil {
-        panic(err)
-    }
-}
-
 func main() {
     http.HandleFunc("/save/", saveHandler)
     http.HandleFunc("/view/", viewHandler)
     http.HandleFunc("/edit/", editHandler)
     http.HandleFunc("/login", loginHandler)
-    http.HandleFunc("/test", testHandler)
     http.HandleFunc("/testR", testRHandler)
+    http.HandleFunc("/users/", UsersHandler)
+    http.HandleFunc("/users/get", getUsersHandler)
     http.HandleFunc("/login/check", loginCheckHandler)
     //load CSS
     http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
+
     log.Fatal(http.ListenAndServe(":8080", nil))
 }

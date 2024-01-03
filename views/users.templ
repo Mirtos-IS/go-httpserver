@@ -1,0 +1,32 @@
+package views
+
+import "httpserver/models"
+import "strconv"
+
+var page = 0
+templ Users (users []models.User) {
+  @Header("Users") {
+    <table class="justify-center">
+    <tr>
+      <th>Id</th>
+      <th>Username</th>
+      <th>Business_name</th>
+      <th>Created_at</th>
+      <th>Updated_at</th>
+      </tr>
+      for _, user := range(users) {
+        @row(user)
+    }
+    </table>
+  }
+}
+
+templ row(user models.User){
+  <tr>
+    <td>{ strconv.FormatInt(user.Uid, 10) }</td>
+    <td>{ user.Username }</td>
+    <td>{ user.Business_name }</td>
+    <td>{ user.Created_at.String() }</td>
+    <td>{ user.Updated_at.String() }</td>
+  </tr>
+}

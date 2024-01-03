@@ -1,0 +1,22 @@
+package views
+
+templ Header(title string) {
+  <!DOCTYPE html>
+	<html lang="en" class="h-full">
+    <head>
+      <title>{ title }</title>
+      <meta charset="UTF-8"/>
+      <link rel="stylesheet" type="text/css" href="../css/styles.css"></link>
+      <script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
+    </head>
+    <table class="justify-center">
+      <th class="td">Home</th>
+      <th class="td">Login</th>
+      <th class="td"><a class="no-click" href="/users">Users</a></th>
+      <th class="td">About</th>
+    </table>
+    <body>
+      { children... }
+    </body>
+  </html>
+}

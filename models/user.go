@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"crypto/sha256"
@@ -15,7 +15,7 @@ type User struct {
     Updated_at time.Time
 }
 
-func (user *User) save() (int64, error) {
+func (user *User) Save() (int64, error) {
     db, err := sql.Open("sqlite3", "database/httpserver.db")
     CheckErr(err)
     defer db.Close()
@@ -94,7 +94,6 @@ func FindUserByPassword(password string) (*User, error) {
     for rows.Next() {
         err = rows.Scan(&user.Uid, &user.Username, &user.Password, &user.Business_name, &user.Created_at, &user.Updated_at)
         CheckErr(err)
-
     }
     return &user, nil
 }
@@ -104,6 +103,34 @@ func hashPassword(password string) (string) {
     hash.Write([]byte(password))
 
     return string(hash.Sum(nil))
+}
+
+func CheckErr(err error) {
+    if err != nil {
+        panic(err)
+    }
+}
+
+func GetUsers(page int) ([]User, error) {
+    db, err := sql.Open("sqlite3", "database/httpserver.db")
+    CheckErr(err)
+
+    defer db.Close()
+
+    rows, err := db.Query("SELECT * FROM user LIMIT 100 OFFSET (?)", page)
+    CheckErr(err)
+    defer rows.Close()
+
+    var users []User
+
+    for rows.Next() {
+        var user User
+        err = rows.Scan(&user.Uid, &user.Username, &user.Password, &user.Business_name, &user.Created_at, &user.Updated_at)
+        CheckErr(err)
+
+        users = append(users, user)
+    }
+    return users, nil
 }
 
 //TODO: create a proper login system and proper password storage, as plain text is cringe

@@ -3,7 +3,16 @@
   background-color: #505050;
   }
 
-.dark_mode {
-  color: #CCCCCC;
-  background-color: #505050;
-  }
+.td {
+  padding: 10px;
+  margin: 10px 10px 10px 10px;
+}
+
+.no-click {
+  text-decoration: none;
+}
+
+.justify-center {
+  display: flex;
+  justify-content: center;
+}

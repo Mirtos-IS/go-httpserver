@@ -1,0 +1,22 @@
+package views
+
+import "httpserver/models"
+import "strconv"
+
+templ Wrong(user *models.User) {
+  @Header("Wrong password") {
+    if user.Uid == 0 {
+      <h1>This password below is not yours, dummy. try the correct one, please</h1>
+        <p>
+        </p>
+    } else {
+      <h1>This password below to the user: { user.Username }</h1>
+        <p>
+        @EditButton(strconv.FormatInt(user.Uid, 10))
+        </p>
+        <div>
+        { user.Password }
+      </div>
+    }
+  }
+}

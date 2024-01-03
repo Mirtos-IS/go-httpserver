@@ -1,0 +1,16 @@
+package views
+
+import "httpserver/models"
+import "strconv"
+
+templ View(user *models.User) {
+  @Header(user.Username) {
+    <h1>{ user.Username }</h1>
+    <p>
+      @EditButton(strconv.FormatInt(user.Uid, 10))
+    </p>
+    <div>
+      {user.Password}
+    </div>
+  }
+}
